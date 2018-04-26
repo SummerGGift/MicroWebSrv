@@ -2,8 +2,8 @@
 from microWebSrv import MicroWebSrv
 import rtthread
 import json
-import dht12
 from machine import Pin, I2C
+import fxos8700
 
 # ----------------------------------------------------------------------------
 
@@ -61,11 +61,9 @@ def _httpHandlerTestPost(httpClient, httpResponse) :
 
 @MicroWebSrv.route('/sysdata')
 def _httpHandlerTestGet(httpClient, httpResponse) :
-    sensor.measure()
-    
-    temperature = sensor.temperature()
-    humidity    = sensor.humidity()
-    #key_v       = key.value()
+
+    ax, ay, az = sensor.accelerometer
+    mx, my, mz = sensor.magnetometer
     
     content ={
         'status'      : 200,
@@ -78,10 +76,11 @@ def _httpHandlerTestGet(httpClient, httpResponse) :
             "presentUtilization":"0.35",
             "ipAddress":"192.168.0.1",
             "key":1,
-            "sensors":"temperature:{temperature},humidity:{humidity},".format(temperature = temperature,humidity = humidity)}
+            "Acceleration   (m/s^2)": "accel_x = {accel_x}, accel_y = {accel_y}, accel_z = {accel_z}".format(accel_x = ax, accel_y = ay, accel_z = az),
+            "Magnetometer  (uTesla)": "mag_x = {mag_x}, mag_y = {mag_y}, mag_z = {mag_z}".format(mag_x = mx, mag_y = my, mag_z = mz)
         }
         }
-
+            }
     json_content = json.dumps(content)
     httpResponse.WriteResponseOk( headers        = None,
                                   contentType    = "text/json",
@@ -144,10 +143,10 @@ def _closedCallback(webSocket) :
 #   ( "/test",  "POST", _httpHandlerTestPost )
 #]
 
-i2c = I2C(1)
-sensor = dht12.DHT12(i2c)
-# led = Pin(("LED1", 52), Pin.OUT_PP)
-# key = Pin(("KEY", 125), Pin.IN, Pin.PULL_UP) 
+clk = Pin(('clk', 59), Pin.OUT_OD)
+sda = Pin(('sda', 60), Pin.OUT_OD)
+i2c = I2C(-1, clk, sda, freq=100000)
+sensor = fxos8700.FXOS8700(i2c)
 
 srv = MicroWebSrv(webPath='www/')
 srv.MaxWebSocketRecvLen     = 256
