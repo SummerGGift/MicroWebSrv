@@ -2,6 +2,8 @@
 from microWebSrv import MicroWebSrv
 import rtthread
 import json
+import dht12
+from machine import Pin, I2C
 
 # ----------------------------------------------------------------------------
 
@@ -59,15 +61,28 @@ def _httpHandlerTestPost(httpClient, httpResponse) :
 
 @MicroWebSrv.route('/sysdata')
 def _httpHandlerTestGet(httpClient, httpResponse) :
+    sensor.measure()
+    
+    temperature = sensor.temperature()
+    humidity    = sensor.humidity()
+    #key_v       = key.value()
+    
     content ={
-        "cpu_usage" : "52%",
-        "mem_usage" : (29877028,10000,100000),
-        "ip_addr"   : '192.168.10.110',
-        'led1'      : True,
-        'key'       : True,
-        'sensor'    : 28.5}
-    json_content = json.dumps(content)
+        'status'      : 200,
+        'body'        :{
+        'status'      : 1,
+        'result'      :{
+            "versions":"3.0.3",
+            "getTime":"1497594033",
+            "cpuUtilization":"0.35",
+            "presentUtilization":"0.35",
+            "ipAddress":"192.168.0.1",
+            "key":1,
+            "sensors":"temperature:{temperature},humidity:{humidity},".format(temperature = temperature,humidity = humidity)}
+        }
+        }
 
+    json_content = json.dumps(content)
     httpResponse.WriteResponseOk( headers        = None,
                                   contentType    = "text/json",
                                   contentCharset = "UTF-8",
@@ -128,6 +143,11 @@ def _closedCallback(webSocket) :
 #   ( "/test",  "GET",  _httpHandlerTestGet ),
 #   ( "/test",  "POST", _httpHandlerTestPost )
 #]
+
+i2c = I2C(1)
+sensor = dht12.DHT12(i2c)
+# led = Pin(("LED1", 52), Pin.OUT_PP)
+# key = Pin(("KEY", 125), Pin.IN, Pin.PULL_UP) 
 
 srv = MicroWebSrv(webPath='www/')
 srv.MaxWebSocketRecvLen     = 256
