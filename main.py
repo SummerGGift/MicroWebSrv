@@ -76,13 +76,19 @@ def _httpHandlerTestGet(httpClient, httpResponse) :
             "presentUtilization":"0.35",
             "ipAddress":"192.168.0.1",
             "key":1,
-            "Acceleration   (m/s^2)": "accel_x = {accel_x}, accel_y = {accel_y}, accel_z = {accel_z}".format(accel_x = ax, accel_y = ay, accel_z = az),
-            "Magnetometer  (uTesla)": "mag_x = {mag_x}, mag_y = {mag_y}, mag_z = {mag_z}".format(mag_x = mx, mag_y = my, mag_z = mz)
+            "Acceleration": {"accel_x" : ax, "accel_y" : ay, "accel_z" : az},
+            "Magnetometer": { "mag_x"  : mx, "mag_y"   : my, "mag_z" :  mz}
         }
         }
             }
+    headers = {
+	    'Access-Control-Allow-Origin': '*',
+	    'Access-Control-Allow-Methods': 'POST,GET',
+	    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Content-Length, X-Requested-With'
+    }
     json_content = json.dumps(content)
-    httpResponse.WriteResponseOk( headers        = None,
+    json_headers = json.dumps(headers)
+    httpResponse.WriteResponseOk( headers        = headers,
                                   contentType    = "text/json",
                                   contentCharset = "UTF-8",
                                   content        = json_content)
