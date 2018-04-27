@@ -4,6 +4,7 @@ import rtthread
 import json
 from machine import Pin, I2C
 import fxos8700
+import machine
 
 # ----------------------------------------------------------------------------
 
@@ -61,9 +62,11 @@ def _httpHandlerTestPost(httpClient, httpResponse) :
 
 @MicroWebSrv.route('/sysdata')
 def _httpHandlerTestGet(httpClient, httpResponse) :
-
     ax, ay, az = sensor.accelerometer
     mx, my, mz = sensor.magnetometer
+    cpu_usage = machine.get_cpu_usage()
+    cpu_value = cpu_usage[0] + cpu_usage[1] * 0.1
+    ip = httpClient.GetIPAddr();
     
     content ={
         'status'      : 200,
@@ -72,9 +75,9 @@ def _httpHandlerTestGet(httpClient, httpResponse) :
         'result'      :{
             "versions":"3.0.3",
             "getTime":"1497594033",
-            "cpuUtilization":"0.35",
-            "presentUtilization":"0.35",
-            "ipAddress":"192.168.0.1",
+            "cpuUtilization":cpu_value,
+            "presentUtilization":1,
+            "ipAddress": ip,
             "key":1,
             "Acceleration": {"accel_x" : ax, "accel_y" : ay, "accel_z" : az},
             "Magnetometer": { "mag_x"  : mx, "mag_y"   : my, "mag_z" :  mz}
